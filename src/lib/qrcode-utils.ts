@@ -19,6 +19,55 @@ export function formatThreeDigitCode(num: number): string {
 }
 
 /**
+ * Sanitizes and validates the public application base URL.
+ * Guarantees:
+ * - NEVER returns a Supabase domain (*.supabase.co / pooler.supabase.com)
+ * - Strips accidental environment variable prefixes like "NEXT_PUBLIC_APP_URL=" or "NEXT_PUBLIC_SUPABASE_URL="
+ * - Strips wrapping quotes and trailing slashes
+ * - Automatically falls back to the current browser origin (window.location.origin) if invalid or pointing to Supabase
+ */
+export function sanitizeBaseUrl(rawUrl?: string): string {
+  let url = (rawUrl || '').trim();
+
+  // Strip accidental env var prefix like "NEXT_PUBLIC_APP_URL=" or "NEXT_PUBLIC_SUPABASE_URL="
+  url = url.replace(/^[A-Z0-9_]+=\s*/i, '').trim();
+
+  // Strip wrapping single/double quotes
+  url = url.replace(/^['"]+|['"]+$/g, '').trim();
+
+  // Remove trailing slashes
+  url = url.replace(/\/+$/, '');
+
+  // Detect if someone accidentally configured a Supabase API/DB domain
+  const isSupabaseDomain = /([a-z0-9-]+\.)?supabase\.(co|com)/i.test(url);
+
+  // If empty, invalid format, or points to Supabase, fallback to real window origin
+  if (!url || isSupabaseDomain || !/^https?:\/\//i.test(url)) {
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      const currentOrigin = window.location.origin.replace(/\/+$/, '');
+      if (!/([a-z0-9-]+\.)?supabase\.(co|com)/i.test(currentOrigin)) {
+        return currentOrigin;
+      }
+    }
+    // SSR / server fallback
+    return 'http://localhost:3000';
+  }
+
+  return url;
+}
+
+/**
+ * Builds the canonical dynamic redirect URL for a given QR code.
+ * Example: buildDynamicUrl('https://meu-dominio.com', '001') -> 'https://meu-dominio.com/r/001'
+ * Never puts variable names or Supabase URLs inside the QR code.
+ */
+export function buildDynamicUrl(baseUrl?: string, code?: string): string {
+  const cleanBase = sanitizeBaseUrl(baseUrl);
+  const cleanCode = (code || '').trim();
+  return `${cleanBase}/r/${cleanCode}`;
+}
+
+/**
  * Formats a clean download filename for a QR Code
  * Example: "001.png" or "001 - Restaurante Silva.png"
  */
@@ -126,7 +175,7 @@ export async function downloadBatchZip(
 
   // Generate QR code for each record
   for (const record of records) {
-    const dynamicUrl = `${baseUrl.replace(/\/$/, '')}/r/${record.code}`;
+    const dynamicUrl = buildDynamicUrl(baseUrl, record.code);
     const canvas = await generateQRCodeCanvas(dynamicUrl, size);
 
     // Convert canvas to base64 buffer
@@ -144,16 +193,18 @@ export async function downloadBatchZip(
   const csvContent = generateCSVContent(records, baseUrl);
   zip.file('lista_qrcodes.csv', csvContent);
 
+  const cleanBase = sanitizeBaseUrl(baseUrl);
+
   // Include README text file
   const readme = `QR DINÂMICO - LOTE DE QR CODES
 Gerado em: ${new Date().toLocaleString('pt-BR')}
 Total de QR Codes: ${records.length}
 Resolução das Imagens: ${size}x${size} pixels
-URL Base: ${baseUrl}
+URL Base Pública: ${cleanBase}
 
 COMO FUNCIONA:
 - Cada imagem neste arquivo ZIP possui um identificador único (ex: 001.png).
-- O QR Code aponta para o link dinâmico: ${baseUrl}/r/[ID]
+- O QR Code impresso aponta para o link dinâmico: ${cleanBase}/r/[ID]
 - Você pode imprimir essas imagens em placas físicas, adesivos ou totens.
 - A qualquer momento, você pode alterar o link de destino no painel web sem precisar reimprimir as placas!
 `;
@@ -183,7 +234,7 @@ export function generateCSVContent(records: QRCodeRecord[], baseUrl: string): st
     escapeCsv(r.code),
     escapeCsv(r.name),
     escapeCsv(r.destination_url || 'Não configurado'),
-    escapeCsv(`${baseUrl.replace(/\/$/, '')}/r/${r.code}`),
+    escapeCsv(buildDynamicUrl(baseUrl, r.code)),
     escapeCsv(r.active ? 'Ativo' : 'Desativado'),
     r.scan_count || 0,
     escapeCsv(new Date(r.created_at).toLocaleString('pt-BR')),

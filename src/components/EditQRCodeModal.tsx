@@ -17,6 +17,7 @@ import {
   downloadQRCodePNG,
   downloadQRCodeJPEG,
   getQRCodeFilename,
+  buildDynamicUrl,
 } from '../lib/qrcode-utils.ts';
 
 interface EditQRCodeModalProps {
@@ -59,7 +60,7 @@ export const EditQRCodeModal: React.FC<EditQRCodeModalProps> = ({
   // Render QR Code preview on canvas whenever modal opens or code changes
   useEffect(() => {
     if (record && isOpen) {
-      const dynamicUrl = `${baseUrl.replace(/\/$/, '')}/r/${record.code}`;
+      const dynamicUrl = buildDynamicUrl(baseUrl, record.code);
       generateQRCodeCanvas(dynamicUrl, 400).then((renderedCanvas) => {
         if (canvasRef.current) {
           const ctx = canvasRef.current.getContext('2d');
@@ -75,7 +76,7 @@ export const EditQRCodeModal: React.FC<EditQRCodeModalProps> = ({
 
   if (!isOpen || !record) return null;
 
-  const dynamicUrl = `${baseUrl.replace(/\/$/, '')}/r/${record.code}`;
+  const dynamicUrl = buildDynamicUrl(baseUrl, record.code);
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(dynamicUrl);

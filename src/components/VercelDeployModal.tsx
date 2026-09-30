@@ -210,38 +210,68 @@ CREATE INDEX IF NOT EXISTS idx_qr_codes_active ON qr_codes (active);`;
               <span>1. Variáveis de Ambiente na Vercel</span>
             </div>
             <p className="text-xs text-gray-600 mb-3">
-              No painel da <strong>Vercel &gt; Settings &gt; Environment Variables</strong>, adicione:
+              No painel da <strong>Vercel &gt; Settings &gt; Environment Variables</strong>, adicione as duas variáveis abaixo separadamente (Key e Value):
             </p>
-            <div className="space-y-2">
-              <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200 flex items-center justify-between font-mono text-xs">
-                <div>
-                  <span className="text-blue-700 font-bold">NEXT_PUBLIC_APP_URL</span>
-                  <span className="text-gray-400 ml-2">= https://seu-dominio.com</span>
+
+            {/* Warning callout */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 text-xs text-amber-900 flex items-start space-x-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <strong>Atenção Crítica:</strong> NUNCA use a URL do Supabase (<code className="font-mono text-xs bg-amber-100 px-1 rounded">*.supabase.co</code>) no <code className="font-mono text-xs bg-amber-100 px-1 rounded">NEXT_PUBLIC_APP_URL</code>. A URL pública deve ser o seu domínio na Vercel (onde a aplicação roda). O Supabase é usado apenas na <code className="font-mono text-xs bg-amber-100 px-1 rounded">DATABASE_URL</code>.
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              {/* Var 1 */}
+              <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200 space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-gray-700">Variável 1 (Pública): Endereço do seu app</span>
+                  <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Nos QR Codes</span>
                 </div>
-                <button
-                  onClick={() => copyToClipboard('NEXT_PUBLIC_APP_URL=https://seu-dominio.com', 'env1')}
-                  className="p-1 text-gray-400 hover:text-gray-700 rounded"
-                >
-                  {copiedKey === 'env1' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                </button>
+                <div className="flex items-center justify-between font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                  <span className="text-blue-700 font-bold">NEXT_PUBLIC_APP_URL</span>
+                  <button
+                    onClick={() => copyToClipboard('NEXT_PUBLIC_APP_URL', 'key1')}
+                    title="Copiar Nome da Chave"
+                    className="p-1 text-gray-400 hover:text-gray-700 rounded text-[10px] inline-flex items-center gap-1"
+                  >
+                    {copiedKey === 'key1' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>Key</span>
+                  </button>
+                </div>
+                <div className="flex items-center justify-between font-mono bg-white px-2 py-1 rounded border border-gray-200 text-gray-600">
+                  <span className="truncate">https://seu-dominio.com</span>
+                  <button
+                    onClick={() => copyToClipboard('https://seu-dominio.com', 'val1')}
+                    title="Copiar Valor de Exemplo"
+                    className="p-1 text-gray-400 hover:text-gray-700 rounded text-[10px] inline-flex items-center gap-1"
+                  >
+                    {copiedKey === 'val1' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>Value</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200 flex items-center justify-between font-mono text-xs">
-                <div>
-                  <span className="text-blue-700 font-bold">DATABASE_URL</span>
-                  <span className="text-gray-400 ml-2">= postgresql://postgres:senha@db.supabase.co:5432/postgres</span>
+              {/* Var 2 */}
+              <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200 space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-gray-700">Variável 2 (Privada): Conexão PostgreSQL</span>
+                  <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">Somente Backend</span>
                 </div>
-                <button
-                  onClick={() =>
-                    copyToClipboard(
-                      'DATABASE_URL=postgresql://postgres:senha@db.supabase.co:5432/postgres',
-                      'env2'
-                    )
-                  }
-                  className="p-1 text-gray-400 hover:text-gray-700 rounded"
-                >
-                  {copiedKey === 'env2' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                </button>
+                <div className="flex items-center justify-between font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                  <span className="text-emerald-700 font-bold">DATABASE_URL</span>
+                  <button
+                    onClick={() => copyToClipboard('DATABASE_URL', 'key2')}
+                    title="Copiar Nome da Chave"
+                    className="p-1 text-gray-400 hover:text-gray-700 rounded text-[10px] inline-flex items-center gap-1"
+                  >
+                    {copiedKey === 'key2' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>Key</span>
+                  </button>
+                </div>
+                <div className="flex items-center justify-between font-mono bg-white px-2 py-1 rounded border border-gray-200 text-gray-500">
+                  <span className="truncate text-[11px]">postgresql://postgres:[SENHA]@db.[REF].supabase.co:5432/postgres</span>
+                </div>
               </div>
             </div>
           </div>

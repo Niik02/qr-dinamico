@@ -8,7 +8,7 @@ import { SingleCreateModal } from './components/SingleCreateModal.tsx';
 import { EditQRCodeModal } from './components/EditQRCodeModal.tsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.tsx';
 import { VercelDeployModal } from './components/VercelDeployModal.tsx';
-import { downloadBatchZip, downloadCSV } from './lib/qrcode-utils.ts';
+import { downloadBatchZip, downloadCSV, sanitizeBaseUrl, buildDynamicUrl } from './lib/qrcode-utils.ts';
 import {
   Search,
   X,
@@ -31,7 +31,9 @@ export default function App() {
   const [records, setRecords] = useState<QRCodeRecord[]>([]);
   const [stats, setStats] = useState<QRCodeStats>({ total: 0, active: 0, inactive: 0, totalScans: 0 });
   const [nextNumber, setNextNumber] = useState<number>(1);
-  const [appUrl, setAppUrl] = useState<string>(window.location.origin);
+  const [appUrl, setAppUrl] = useState<string>(() =>
+    sanitizeBaseUrl(typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,7 +87,7 @@ export default function App() {
         if (configRes.ok) {
           const configData = await configRes.json();
           if (configData.appUrl) {
-            setAppUrl(configData.appUrl);
+            setAppUrl(sanitizeBaseUrl(configData.appUrl));
           }
         }
       } catch (err) {

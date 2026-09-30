@@ -10,7 +10,7 @@ import {
   Power,
   ChevronDown,
 } from 'lucide-react';
-import { downloadQRCodePNG, downloadQRCodeJPEG, getQRCodeFilename } from '../lib/qrcode-utils.ts';
+import { downloadQRCodePNG, downloadQRCodeJPEG, getQRCodeFilename, buildDynamicUrl } from '../lib/qrcode-utils.ts';
 
 interface QRCodeTableProps {
   records: QRCodeRecord[];
@@ -42,14 +42,14 @@ export const QRCodeTable: React.FC<QRCodeTableProps> = ({
   const someSelected = selectedIds.length > 0 && selectedIds.length < records.length;
 
   const handleCopyUrl = (code: string) => {
-    const fullUrl = `${baseUrl.replace(/\/$/, '')}/r/${code}`;
+    const fullUrl = buildDynamicUrl(baseUrl, code);
     navigator.clipboard.writeText(fullUrl);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
   const handleDownload = async (record: QRCodeRecord, format: 'png' | 'jpg') => {
-    const fullUrl = `${baseUrl.replace(/\/$/, '')}/r/${record.code}`;
+    const fullUrl = buildDynamicUrl(baseUrl, record.code);
     const filename = getQRCodeFilename(record, format);
     if (format === 'png') {
       await downloadQRCodePNG(fullUrl, filename, 1000);
@@ -103,7 +103,7 @@ export const QRCodeTable: React.FC<QRCodeTableProps> = ({
             <tbody className="divide-y divide-[#E5E5E5]">
               {records.map((record) => {
                 const isSelected = selectedIds.includes(record.id);
-                const dynamicUrl = `${baseUrl.replace(/\/$/, '')}/r/${record.code}`;
+                const dynamicUrl = buildDynamicUrl(baseUrl, record.code);
                 const relativeUrl = `/r/${record.code}`;
 
                 return (
@@ -267,7 +267,7 @@ export const QRCodeTable: React.FC<QRCodeTableProps> = ({
       <div className="md:hidden space-y-3">
         {records.map((record) => {
           const isSelected = selectedIds.includes(record.id);
-          const dynamicUrl = `${baseUrl.replace(/\/$/, '')}/r/${record.code}`;
+          const dynamicUrl = buildDynamicUrl(baseUrl, record.code);
 
           return (
             <div

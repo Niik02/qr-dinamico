@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import pg from 'pg';
@@ -14,6 +15,15 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json());
+
+// Normalize Vercel rewritten paths (e.g. x-matched-path or x-vercel-matched-path)
+app.use((req, _res, next) => {
+  const matchedPath = (req.headers['x-matched-path'] || req.headers['x-vercel-matched-path']) as string;
+  if (matchedPath && matchedPath.startsWith('/api') && req.url === '/api/index') {
+    req.url = matchedPath;
+  }
+  next();
+});
 
 // Initialize database
 QRCodeDatabase.init().catch((err) => {
@@ -33,16 +43,37 @@ function sanitizeDestinationUrl(url: string): string {
 
 // Helper to determine the public App URL
 function getBaseAppUrl(req: Request): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+  let envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || '';
+
+  // Clean any accidental env var prefix like "NEXT_PUBLIC_APP_URL=" or "NEXT_PUBLIC_SUPABASE_URL="
+  envUrl = envUrl.replace(/^[A-Z0-9_]+=\s*/i, '').trim();
+
+  // Strip wrapping quotes
+  envUrl = envUrl.replace(/^['"]+|['"]+$/g, '').trim();
+
+  // Remove trailing slashes
+  envUrl = envUrl.replace(/\/+$/, '');
+
+  // Detect if someone accidentally configured a Supabase domain
+  const isSupabaseDomain = /([a-z0-9-]+\.)?supabase\.(co|com)/i.test(envUrl);
+  if (isSupabaseDomain) {
+    console.warn(
+      '[Server] NEXT_PUBLIC_APP_URL points to a Supabase domain (' +
+        envUrl +
+        '). Supabase is a database backend, not the public web application URL. Discarding and using request host.'
+    );
+    envUrl = '';
   }
-  if (process.env.APP_URL) {
-    return process.env.APP_URL.replace(/\/$/, '');
+
+  // If a valid non-supabase http/https URL exists, use it
+  if (envUrl && /^https?:\/\//i.test(envUrl)) {
+    return envUrl;
   }
-  // Fallback to current request host
+
+  // Fallback: derive directly from current request headers
   const host = req.get('x-forwarded-host') || req.get('host') || `localhost:${PORT}`;
   const proto = req.get('x-forwarded-proto') || req.protocol || 'http';
-  return `${proto}://${host}`;
+  return `${proto}://${host}`.replace(/\/+$/, '');
 }
 
 // HTML template generator for error/status pages
@@ -537,16 +568,23 @@ app.post('/api/qrcodes/batch-delete', async (req: Request, res: Response) => {
 // ==========================================
 // 3. FRONTEND INTEGRATION (Vite Dev / Prod)
 // ==========================================
+const distPath = path.resolve(process.cwd(), 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
+
+// Fallback for root / or index.html if routed through Express
+app.get(['/', '/index.html'], (_req, res) => {
+  const indexPath = path.resolve(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>QR Dinâmico</title></head><body><h1>QR Dinâmico</h1><p>Aplicação pronta. Acesse o painel.</p></body></html>');
+});
+
 async function start() {
-  if (process.env.NODE_ENV === 'production') {
-    // Serve static build from dist
-    const distPath = path.resolve(__dirname, 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.resolve(distPath, 'index.html'));
-    });
-  } else {
-    // Mount Vite dev server in middleware mode
+  if (process.env.NODE_ENV !== 'production' && !fs.existsSync(path.resolve(distPath, 'index.html'))) {
+    // Mount Vite dev server in middleware mode for local development
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },

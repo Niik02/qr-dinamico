@@ -1,5 +1,4 @@
 {
-  "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
@@ -8,11 +7,11 @@
       "destination": "/api/redirect?code=:code"
     },
     {
-      "source": "/api/:path*",
+      "source": "/api/(.*)",
       "destination": "/api/index"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api|r).*)",
       "destination": "/index.html"
     }
   ]
