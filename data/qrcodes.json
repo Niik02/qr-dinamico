@@ -1,0 +1,57 @@
+[
+  {
+    "id": "qr_munc7ggk_0am8ae5",
+    "code": "001",
+    "name": "Restaurante Silva",
+    "destination_url": "https://meusite.com",
+    "active": true,
+    "scan_count": 2,
+    "last_scanned_at": "2026-09-29T23:58:44.235Z",
+    "created_at": "2026-09-29T23:58:25.556Z",
+    "updated_at": "2026-09-29T23:58:52.668Z"
+  },
+  {
+    "id": "qr_munc7ggk_00a2f6o",
+    "code": "002",
+    "name": "QR 002",
+    "destination_url": "https://google.com",
+    "active": true,
+    "scan_count": 0,
+    "last_scanned_at": null,
+    "created_at": "2026-09-29T23:58:25.556Z",
+    "updated_at": "2026-09-29T23:58:25.556Z"
+  },
+  {
+    "id": "qr_munc7ggk_u4cd6j4",
+    "code": "003",
+    "name": "QR 003",
+    "destination_url": "https://google.com",
+    "active": true,
+    "scan_count": 0,
+    "last_scanned_at": null,
+    "created_at": "2026-09-29T23:58:25.556Z",
+    "updated_at": "2026-09-29T23:58:25.556Z"
+  },
+  {
+    "id": "qr_munc7ggk_ufoh745",
+    "code": "004",
+    "name": "QR 004",
+    "destination_url": "https://google.com",
+    "active": true,
+    "scan_count": 0,
+    "last_scanned_at": null,
+    "created_at": "2026-09-29T23:58:25.556Z",
+    "updated_at": "2026-09-29T23:58:25.556Z"
+  },
+  {
+    "id": "qr_munc7ggk_xcnrtev",
+    "code": "005",
+    "name": "QR 005",
+    "destination_url": "https://google.com",
+    "active": true,
+    "scan_count": 0,
+    "last_scanned_at": null,
+    "created_at": "2026-09-29T23:58:25.556Z",
+    "updated_at": "2026-09-29T23:58:25.556Z"
+  }
+]

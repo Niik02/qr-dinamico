@@ -1,0 +1,8 @@
+{
+  "name": "QR Dinâmico",
+  "description": "Crie, gerencie e altere seus QR Codes dinâmicos sem precisar gerar novos códigos físicos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
